@@ -1,0 +1,48 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial espSerial(3, 2); // RX=Pin 3, TX=Pin 2
+
+#define RADAR_PIN 7   
+#define RELAY_PIN 8   
+
+void setup() {
+  pinMode(RADAR_PIN, INPUT);
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, HIGH); // Start OFF
+  
+  Serial.begin(9600);     
+  espSerial.begin(9600);  
+  Serial.println("--- ARDUINO DEBUG MODE ---");
+}
+
+void loop() {
+  // 1. Check Radar
+  if (digitalRead(RADAR_PIN) == HIGH) {
+    delay(200); // Filter noise
+    
+    if (digitalRead(RADAR_PIN) == HIGH) {
+      Serial.println("[!] Motion Detected -> Sending 'M'...");
+      espSerial.write('M'); 
+      delay(300); // Wait 3s before checking radar again
+    }
+  }
+
+  // 2. Listen for ESP Response (DEBUGGING ADDED)
+  if (espSerial.available()) {
+    char command = espSerial.read();
+    
+    Serial.print("Received from ESP: "); // Debug print
+    Serial.println(command);             // Print whatever character came in
+    
+    if (command == 'F') {
+      fireNet();
+    }
+  }
+}
+
+void fireNet() {
+  Serial.println(">>> CLICK! Relay Firing <<<");
+  digitalWrite(RELAY_PIN, LOW);  // ON
+  delay(500);                    // Wait 0.5s (NOT 5000)
+  digitalWrite(RELAY_PIN, HIGH); // OFF
+}
