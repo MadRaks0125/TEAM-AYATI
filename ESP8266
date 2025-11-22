@@ -1,0 +1,33 @@
+#include <SoftwareSerial.h>
+#include <ESP8266WiFi.h>
+
+// RX = D7 (GPIO 13) -> From Arduino
+// TX = D6 (GPIO 12) -> To Arduino
+SoftwareSerial arduinoSerial(13, 12);
+
+void setup() {
+  Serial.begin(9600);
+  arduinoSerial.begin(9600);
+  WiFi.mode(WIFI_OFF);
+  Serial.println("--- ESP8266 SIMULATION READY ---");
+}
+
+void loop() {
+  if (arduinoSerial.available()) {
+    char incoming = arduinoSerial.read();
+    
+    if (incoming == 'M') {
+      // 1. Blink LED to show we got the message
+      digitalWrite(LED_BUILTIN, LOW); // LED ON
+      Serial.println("[RX] Motion Received. Waiting 1s...");
+      
+      // 2. Wait 1 second (Pretending to think)
+      delay(1000); 
+      
+      // 3. Send Fire Command
+      Serial.println("[TX] Firing!");
+      arduinoSerial.write('F'); 
+      digitalWrite(LED_BUILTIN, HIGH); // LED OFF
+    }
+  }
+}
